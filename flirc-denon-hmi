@@ -1,0 +1,170 @@
+#!/bin/bash
+
+echo "flirc-denon-hmi version 1.0"
+echo
+echo "Press [Ctrl+C] to exit this script."
+echo
+
+log_button() {
+    echo "-> button: $@"
+}
+
+log_unbound() {
+    echo "-> unbound"
+    say "This button is currently unbound."
+}
+
+say() {
+    local message="$1"
+
+    if [[ $(mpc status | wc -l) -eq 3 ]]; then
+        mpc pause
+        sleep 0.25
+        google_speech -e delay 1.0 -- "$message"
+        sleep 0.50
+        mpc play
+    else
+        google_speech -e delay 1.0 -- "$message"
+    fi
+}
+
+mpc_toggle_mode() {
+    local what=$1
+    local state=$(mpc $what | sed -rn "s/.*$what: (off|on).*/\\1/p")
+    say "$what is $state."
+}
+
+mpd_current_album_info() {
+    python <<EOF
+import mpd
+
+client = mpd.MPDClient()
+client.connect("localhost", 6600)
+status = client.status()
+song = client.currentsong()
+if song:
+  doing = 'playing' if status['state'] == 'play' else 'queued'
+  print(f"""Currently {doing} album: "{song['album']}" by "{song['albumartist']}".""")
+else:
+  print("Queue is empty.")
+EOF
+}
+
+mpd_current_track_info() {
+    python <<EOF
+import mpd
+
+client = mpd.MPDClient()
+client.connect("localhost", 6600)
+status = client.status()
+song = client.currentsong()
+if song:
+  doing = 'playing' if status['state'] == 'play' else 'queued'
+  print(f"""Currently {doing} track: "{song['title']}" by "{song['artist']}".""")
+else:
+  print("Queue is empty.")
+EOF
+}
+
+mpd_current_queue_info() {
+    python <<EOF
+import mpd
+
+client = mpd.MPDClient()
+client.connect("localhost", 6600)
+playlist = client.playlistinfo()
+if playlist:
+  tracks = len(playlist)
+  time = round(sum([int(x['time']) for x in playlist]) / 60)
+  print(f"""Queue contains {tracks} entries summing {time} minutes.""")
+else:
+  print("Queue is empty.")
+EOF
+}
+
+mpd_random_album() {
+    python <<EOF
+import mpd
+import random
+
+client = mpd.MPDClient()
+client.connect("localhost", 6600)
+albums = client.list('album')
+client.clear()
+choice = random.choice(albums)['album']
+client.findadd('album', choice)
+client.play()
+EOF
+}
+
+echo "Reading input..."
+oldIFS="${IFS}"
+while IFS="\n" read -r -s -n1 ch; do
+    echo "Input: $ch"
+    case $ch in
+        "y") log_button "⏻"
+             say "Restarting device."
+             reboot ;;
+
+        # Playback controls
+        " ") log_button "⏯"
+             mpc toggle ;;
+        "<") log_button "⏮"
+             mpc prev ;;
+        ">") log_button "⏭"
+             mpc next ;;
+        ",") log_button "⏪"
+             mpc seek -0:0:30 ;;
+        ".") log_button "⏩"
+             mpc seek +0:0:30 ;;
+        "/") log_button "⏹"
+             mpc stop ;;
+
+        # Center remote
+        "w") log_button "UP"
+             log_unbound ;;
+        "a") log_button "LEFT"
+             log_unbound ;;
+        "s") log_button "DOWN"
+             log_unbound ;;
+        "d") log_button "RIGHT"
+             log_unbound ;;
+
+        "i") log_button "INFO"
+             say "$(mpd_current_track_info)" ;;
+        "e") log_button "SOURCE"
+             say "$(mpd_current_album_info)" ;;
+        "q") log_button "QUEUE"
+             say "$(mpd_current_queue_info)" ;;
+        "m") log_button "MODE"
+             mpc_toggle_mode consume ;;
+       "\b") log_button "BACK"
+             log_unbound ;;
+        "t") log_button "SETUP"
+             mpd_random_album ;;
+
+        # Numbered controls
+        "0|1|2|3|4|5|6|7|9")
+             log_button "$ch"
+             log_unbound ;;
+        "+") log_button "+10"
+             log_unbound ;;
+
+        # Bottom Row
+        "l") log_button "CLEAR"
+             mpc clear
+             say "Queue is empty."
+             ;;
+
+        "r") log_button "RANDOM"
+             mpc_toggle_mode random ;;
+        "p") log_button "REPEAT"
+             mpc_toggle_mode repeat ;;
+       "\\") mpc "DIMMER"
+             log_unbound ;;
+    esac
+
+    # Flush the input
+    read -d '' -t 0.3 -n 10000
+    echo "..."
+done
