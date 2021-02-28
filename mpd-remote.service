@@ -1,11 +1,11 @@
 [Unit]
-Description=Launch Flirc-Denon-HMI
+Description=Launch mpd-remote service on TTY1
 After=getty.target
 Conflicts=getty@tty1.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/screen -S FlircDenonHMI /usr/local/bin/flirc-denon-hmi
+ExecStart=/usr/bin/screen -S mpd-remote /usr/bin/mpd-remote
 StandardInput=tty-force
 StandardOutput=inherit
 StandardError=inherit
