@@ -142,14 +142,16 @@ class MuteContext:
 class Remote:
     """Remote is a super-class supporting basic remote functionality."""
 
-    BACK_KEYS = [key.CTRL_C, key.CTRL_D, key.ESC, key.LEFT, "b"]
     EXIT_KEYS = [key.CTRL_C, key.CTRL_D]
+    BACK_KEYS = EXIT_KEYS + ["\x7f", "b"]
+    PREV_KEYS = BACK_KEYS + [key.LEFT]
+    ENTER_KEYS = ["\r", "\n", key.RIGHT]
 
     def __init__(self, mpd_client):
         self._client = mpd_client
         self._actions: Dict[str, Callable[None, []]] = dict()
         self._input_char = None
-        self._flush_seconds = 0.3
+        self._flush_seconds = 0.1
 
     def listen_stdin(self) -> None:
         """Listen in the main loop and dispatch events."""
@@ -164,7 +166,7 @@ class Remote:
                 self._unbound(char)
 
             # Flush stdin to ignore double presses
-            self.flush_stdin(0.3)
+            self.flush_stdin(self._flush_seconds)
 
     def prompt_stdin(self, timeout: float = 0) -> str:
         logging.info(f"Listening...")
@@ -182,13 +184,15 @@ class Remote:
 
     def help_menu(self, ctx: MuteContext):
         player = ctx.say_async("Press a button for help.")
-        self.flush_stdin(0.3)
         while True:
+            self.flush_stdin(self._flush_seconds)
             char = self.prompt_stdin()
+
             logging.info(f"Kill process: {player.pid}")
             player.terminate()
             player.wait()
-            if char in self.EXIT_KEYS + [key.ESC]:
+
+            if char in self.BACK_KEYS:
                 ctx.say("Back.")
                 break
             if char in self._actions:
@@ -222,17 +226,17 @@ class Remote:
             if type(entry) is not str:
                 entry = entry(ctx)
             player = ctx.say_async(entry)
-            self.flush_stdin(0)
+            self.flush_stdin(self._flush_seconds)
             char = self.prompt_stdin()
             player.kill()
-            if char in [key.CTRL_C, key.CTRL_D, key.LEFT, "b"]:
+            if char in self.PREV_KEYS:
                 ctx.say("Back.")
                 break
             elif char == key.DOWN:
                 index = (index + 1) % len(menu)
             elif char == key.UP:
                 index = (index - 1) % len(menu)
-            elif char in [key.RIGHT, "\r", "\n"]:
+            elif char in self.ENTER_KEYS:
                 remain = menu[index][1](ctx)
                 if remain:
                     # Update ctx

@@ -16,6 +16,7 @@ class DenonRC1223(Remote):
     def __init__(self, client: Client):
         super().__init__(client)
         self._repeat_char = "+"
+        self._flush_seconds = 0.25
         self._seek_seconds = 30
         self._genres = {
             "1": ["Classical"],
@@ -46,7 +47,7 @@ class DenonRC1223(Remote):
             # Direction pad:
             "\r": self.enter,
             "\n": self.enter,
-            key.ESC: self.back,
+            "b": self.back,
             key.UP: self.up,
             key.LEFT: self.left,
             key.DOWN: self.down,
@@ -294,7 +295,7 @@ class DenonRC1223(Remote):
             # Build query and update results:
             query: str = ""
             while True:
-                self.flush_stdin(0)
+                self.flush_stdin(self._flush_seconds)
                 char = self.prompt_stdin()
 
                 logging.info(f"Kill process: {ctx.player.pid}")
@@ -304,8 +305,8 @@ class DenonRC1223(Remote):
                 if char in self.BACK_KEYS:
                     ctx.say("Back.")
                     break
-                elif (char >= "0" and char <= "9") or char in ["l", "m"]:
-                    if char == "l":
+                elif (char >= "0" and char <= "9") or char in ["l", "m", key.LEFT]:
+                    if char in ["l", key.LEFT]:
                         query = query[:-1]
                     elif char == "m":
                         ctx.player = toggle_vanity(ctx)
@@ -330,7 +331,7 @@ class DenonRC1223(Remote):
                     if ctx.index > 0:
                         ctx.index -= 1
                     ctx.player = say_current(ctx, say_initial=True)
-                elif char in [key.RIGHT, "\r", "\n"]:
+                elif char in self.ENTER_KEYS:
                     play = ctx.results[ctx.index]
                     ctx.say("OK")
                     break
