@@ -92,6 +92,7 @@ class DenonRC1223(Remote):
         for text in [
             "OK",
             "Back.",
+            "Ready.",
             "Not implemented yet.",
             "Use directional buttons.",
             #
@@ -232,6 +233,16 @@ class DenonRC1223(Remote):
         with self.mute_context() as ctx:
             self.help_menu(ctx)
 
+    def back(self):
+        """Nothing. In menus: go back."""
+        self._button("BACK")
+        status, _ = self._client.status()
+        if status["state"] == "play":
+            pass
+        else:
+            with self.mute_context() as ctx:
+                ctx.say("Ready.")
+
     def up(self):
         """Search playlists by name. In menus: previous entry."""
         self._button("UP")
@@ -242,6 +253,10 @@ class DenonRC1223(Remote):
     def left(self):
         """Nothing. In menus: go back."""
         self._button("LEFT")
+
+    def right(self):
+        """Nothing. In menus: select or toggle."""
+        self._button("RIGHT")
 
     def down(self):
         """Search albums by path. In menus: next entry."""
@@ -341,14 +356,6 @@ class DenonRC1223(Remote):
         if play is not None:
             logging.info(f"Playing album: {play.path}")
             self._client.play_album(play)
-
-    def right(self):
-        """Nothing. In menus: select or toggle."""
-        self._button("RIGHT")
-
-    def back(self):
-        """Nothing. In menus: go back."""
-        self._button("BACK")
 
     def info(self):
         """Speak title and artist of current track."""

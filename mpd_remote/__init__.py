@@ -219,16 +219,23 @@ class Remote:
         if title is not None:
             ctx.say(title)
 
-        index = 0
-        while True:
-            ctx.say(str(index + 1))
+        def say_entry(index):
+            ctx.say(f"{index+1}")
             entry = menu[index][0]
             if type(entry) is not str:
                 entry = entry(ctx)
-            player = ctx.say_async(entry)
+            return ctx.say_async(entry)
+
+        index = 0
+        while True:
+            player = say_entry(index)
             self.flush_stdin(self._flush_seconds)
             char = self.prompt_stdin()
-            player.kill()
+
+            logging.info(f"Kill process: {player.pid}")
+            player.terminate()
+            player.wait()
+
             if char in self.PREV_KEYS:
                 ctx.say("Back.")
                 break
