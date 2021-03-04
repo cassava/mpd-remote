@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="mpd-remote",
-    version="0.2",
+    version="0.3",
     description="Control MPD with a remote control.",
     python_requires=">=3.7.0",
     author="Ben Morgan",
@@ -14,6 +14,7 @@ setup(
         "appdirs",
         "click",
         "gtts",
+        "mutagen",
         "python-mpd2",
         "readchar",
     ],

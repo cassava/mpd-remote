@@ -1,6 +1,7 @@
 import random
 import logging
 import re
+import time
 
 from pathlib import Path
 from typing import List, Dict, Union, Tuple, Set
@@ -63,7 +64,7 @@ class Track:
         if "genre" not in self.data:
             return []
         gnre = self.data["genre"]
-        if type(gnre) is str:
+        if isinstance(gnre, str):
             return [gnre]
         else:
             return gnre
@@ -90,6 +91,13 @@ class Album:
             if genre in trck.genres:
                 return True
         return False
+
+    def is_multi_capable(self) -> bool:
+        """Return True if all tracks are capable of storing multiple tag values."""
+        for trck in self.tracks:
+            if trck.path.suffix in [".mp3", ".m4a", ".mp4"]:
+                return False
+        return True
 
     @property
     def genres(self) -> Set[str]:
@@ -131,16 +139,16 @@ class Library:
             if ("albumartist" not in item and "artist" not in item) or (
                 "album" not in item
             ):
-                logging.error(f"Unknown artist or album for: {item}")
+                logging.error(f"Track missing artist or album: {item}")
                 self.errors += 1
                 continue
 
             # Print warnings for missing metadata:
             if "genre" not in item:
-                logging.warning(f"Unknown genre for: {item['file']}")
+                logging.debug(f"Track missing genres: {item}")
                 self.warnings += 1
             if "albumartist" not in item:
-                logging.warning(f"Unknown album artist for: {item['file']}")
+                logging.debug(f"Track missing album-artist: {item}")
                 self.warnings += 1
                 item["albumartist"] = item["artist"]
 
@@ -222,8 +230,8 @@ class Client:
         self._port = port
 
         with self.client() as api:
-            data = api.listallinfo()
-            self.library = Library(data)
+            self._data = api.listallinfo()
+            self.library = Library(self._data)
 
     @contextmanager
     def client(self):
@@ -346,6 +354,8 @@ class Client:
     @with_api
     def update(self, api):
         api.update()
+        time.sleep(1)
+        api.idle("update")
         data = api.listallinfo()
         self.library = Library(data)
 
