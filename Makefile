@@ -3,7 +3,7 @@ install:
 	if [[ -z "$(command -v play)" ]]; then \
 		echo "Error: required executable missing: sox"; \
 		false; \
-	elif [[ -z "$(command -v screen)" ]]; \
+	elif [[ -z "$(command -v screen)" ]]; then \
 		echo "Error: required executable missing: screen"; \
 		false; \
 	fi
