@@ -7,6 +7,7 @@ import hashlib
 import subprocess
 import io
 import logging
+import traceback
 
 from pathlib import Path
 from typing import List, Dict, Union, Callable, Optional, Tuple
@@ -161,7 +162,12 @@ class Remote:
                 logging.info("Goodbye.")
                 break
             elif char in self._actions:
-                self._actions[char]()
+                try:
+                    self._actions[char]()
+                except:
+                    traceback.print_exc()
+                    with self.mute_context() as ctx:
+                        ctx.say("Sorry, an error occurred.")
             else:
                 self._unbound(char)
 
