@@ -236,6 +236,8 @@ def metadata(
 def listen(client: Client, prefetch: bool):
     """Listen to keystrokes for actions."""
     remote = DenonRC1223(client)
+    remote.load_config()
+    remote.print_genre_groups()
     if prefetch:
         logging.info("Pre-fetching speech segments, this might take a while.")
         remote.prefetch()

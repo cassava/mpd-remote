@@ -1,8 +1,11 @@
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Set
 import logging
 import subprocess
+from pathlib import Path
 
 from readchar import key
+import appdirs
+import yaml
 
 from mpd_remote import Remote, Speech, MuteContext, conjoin
 from mpd_remote.library import Client, Album
@@ -16,16 +19,72 @@ class DenonRC1223(Remote):
         self._flush_seconds = 0.25
         self._seek_seconds = 30
         self._genres = {
-            "1": ["Classical"],
-            "2": ["Acoustic", "Soft Rock"],
-            "3": ["Folk", "Indie", "Alternative"],
-            "4": ["Hip-Hop", "Rap", "Reggae"],
-            "5": ["Jazz", "Instrumental"],
-            "6": ["Metal", "Ska", "Punk Rock"],
-            "7": ["Pop", "Rock", "Country", "Latin"],
-            "8": ["Electronic", "Dance", "Disco"],
-            "9": ["Worship", "Lobpreis"],
-            "0": None,
+            "1": [
+                "Classical",
+            ],
+            "2": [
+                "Acoustic",
+                "Soft Rock",
+                "R&B",
+            ],
+            "3": [
+                "Folk",
+                "Indie Folk",
+                "Indie",
+                "Indie Rock",
+                "Indie Pop",
+                "Worldbeat",
+                "Blues",
+                "Celtic",
+            ],
+            "4": [
+                "Hip-Hop",
+                "Rap",
+                "Reggae",
+            ],
+            "5": [
+                "Jazz",
+                "Jazz Pop",
+                "Instrumental",
+            ],
+            "6": [
+                "Hard Rock",
+                "Punk Rock",
+                "Nu Metal",
+                "Ska",
+                "Grunge",
+                "Metal",
+                "Alternative Metal",
+            ],
+            "7": [
+                "Alternative Rock",
+                "Blues Rock",
+                "Classic Rock",
+                "Folk Rock",
+                "Progressive Rock",
+                "Indie Rock",
+                "Post Grunge",
+                "Country",
+                "Country Rock",
+                "Latin",
+                "Pop Rock",
+            ],
+            "8": [
+                "Electronic",
+                "Dance",
+                "Disco",
+                "House",
+            ],
+            "9": [
+                "Religious",
+                "Gospel",
+                "Soul",
+            ],
+            "0": [
+                "Pop",
+                "Pop Punk",
+                "Funk",
+            ],
         }
         self._vanity_idx = 0
         self._actions = {
@@ -77,11 +136,46 @@ class DenonRC1223(Remote):
             "d": self.dimmer,
         }
 
+    def load_config(self):
+        filepath = Path(appdirs.user_config_dir("mpd-remote")) / "denon_rc1223.yaml"
+        if filepath.is_file():
+            logging.info(f"Loading configuration file: {filepath}")
+            with filepath.open("r") as file:
+                config = yaml.load(file)
+            if "genres" in config:
+                self._genres = config["genres"]
+            if "flush_seconds" in config:
+                self._flush_seconds = config["flush_seconds"]
+
     def _button(self, name: str):
         logging.info(f"Button: {name}")
 
     def _search_mode(self) -> str:
         return vanity.MODES[self._vanity_idx]
+
+    def print_genre_groups(self):
+        """Print the genre mapping along with how many albums are in each genre."""
+        all_genres: List[str] = self._client.genres()
+        seen_genres: Set[str] = set()
+        padding = max([len(x) for x in all_genres])
+
+        def analyze_genres(genres):
+            total: Set[str] = set()
+            for gnr in genres:
+                albums = self._client.library.albums_with_genres([gnr])
+                num = len(albums)
+                print("  + {:<{}} {}".format(gnr, padding, num))
+                seen_genres.add(gnr)
+                for alb in albums:
+                    total.add(alb)
+            print("  --{:->{}} {}".format(">", padding, len(total)))
+
+        for gid, genres in self._genres.items():
+            print(f"Number {gid}:")
+            analyze_genres(genres)
+        unmapped = [g for g in all_genres if g not in seen_genres]
+        print("Unmapped:")
+        analyze_genres(unmapped)
 
     def prefetch(self):
         """Prefetch audio speech segments for reduced waiting times (roughly 30

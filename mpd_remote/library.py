@@ -243,6 +243,10 @@ class Client:
             self._client.disconnect()
 
     @with_api
+    def genres(self, api) -> List[str]:
+        return [g["genre"] for g in api.list("genre")]
+
+    @with_api
     def status(self, api) -> Tuple[Dict[str, str], List[Track]]:
         # Stopped, Empty:
         #     status = {

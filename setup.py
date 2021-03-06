@@ -17,6 +17,7 @@ setup(
         "mutagen",
         "python-mpd2",
         "readchar",
+        "pyyaml",
     ],
     packages=["mpd_remote"],
     package_dir={"": "."},
