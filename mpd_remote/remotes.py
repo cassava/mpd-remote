@@ -84,6 +84,8 @@ class DenonRC1223(Remote):
         return vanity.MODES[self._vanity_idx]
 
     def prefetch(self):
+        """Prefetch audio speech segments for reduced waiting times (roughly 30
+        MB for a large library)."""
         # Prefetch common terms (these will change from time to time):
         logging.info("Prefetching: common terms")
         for text in [
@@ -92,6 +94,7 @@ class DenonRC1223(Remote):
             "Ready.",
             "Not implemented yet.",
             "Use directional buttons.",
+            "Sorry, an error occurred.",
             #
             # Help: enter()
             "Press a button for help.",
@@ -393,8 +396,8 @@ class DenonRC1223(Remote):
                 return
             player = ctx.say_async("Current playlist has:")
             tracks = ctx.status["playlistlength"]
-            minutes = round(sum([t.time for t in ctx.playlist]) / 60)
-            target = Speech(f"{tracks} summing {minutes} minutes.").prefetch(
+            minutes = round(sum([t.duration for t in ctx.playlist]) / 60)
+            target = Speech(f"{tracks} tracks summing {minutes} minutes.").prefetch(
                 cache=False
             )
             player.wait()
@@ -483,5 +486,3 @@ class DenonRC1223(Remote):
         with self.mute_context() as ctx:
             ctx.say("Not implemented yet.")
         pass
-
-
