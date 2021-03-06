@@ -1,9 +1,9 @@
 .PHONY: install enable start restart uninstall
 install:
-	if [[ -z "$(command -v play)" ]]; then \
+	if [[ -z "$$(command -v play)" ]]; then \
 		echo "Error: required executable missing: sox"; \
 		false; \
-	elif [[ -z "$(command -v screen)" ]]; then \
+	elif [[ -z "$$(command -v screen)" ]]; then \
 		echo "Error: required executable missing: screen"; \
 		false; \
 	fi
