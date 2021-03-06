@@ -15,10 +15,10 @@ enable:
 	systemctl enable mpd-remote.service
 
 start:
-	systemctl enable mpd-remote.service
+	systemctl start mpd-remote.service
 
 restart:
-	systemctl enable mpd-remote.service
+	systemctl restart mpd-remote.service
 
 uninstall:
 	pip remove mpd-remote
