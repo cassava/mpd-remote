@@ -46,6 +46,7 @@ def main(
     # Handle verbosity:
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(format="%(message)s", stream=sys.stderr, level=level)
+    logging.getLogger("mpd.base").setLevel(logging.WARNING)
 
     # Set context object
     ctx.obj = Client(host, port)

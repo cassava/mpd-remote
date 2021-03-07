@@ -141,7 +141,7 @@ class DenonRC1223(Remote):
         if filepath.is_file():
             logging.info(f"Loading configuration file: {filepath}")
             with filepath.open("r") as file:
-                config = yaml.load(file)
+                config = yaml.safe_load(file)
             if "genres" in config:
                 self._genres = config["genres"]
             if "flush_seconds" in config:
