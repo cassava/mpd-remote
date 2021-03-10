@@ -7,9 +7,10 @@ from readchar import key
 import appdirs
 import yaml
 
-from mpd_remote import Remote, Speech, MuteContext, conjoin
-from mpd_remote.library import Client, Album
-from mpd_remote import vanity
+from . import Remote, MuteContext, vanity
+from .backend import Client
+from .library import Album
+from .speech import Speech, conjoin
 
 
 class DenonRC1223(Remote):

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 
-from .library import Client
+from .backend import Client
 from .remotes import DenonRC1223
 from .organize import EditableDatabase
 
