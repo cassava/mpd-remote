@@ -5,7 +5,7 @@ Conflicts=getty@tty1.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/screen -S mpd-remote /bin/bash -c "/usr/local/bin/mpd-remote listen | tee /tmp/mpd-remote.log"
+ExecStart=/usr/bin/screen -S mpd-remote /bin/bash -c "/usr/local/bin/mpd-remote listen 2>&1 | tee /tmp/mpd-remote.log"
 StandardInput=tty-force
 StandardOutput=inherit
 StandardError=inherit
