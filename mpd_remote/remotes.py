@@ -177,6 +177,7 @@ class DenonRC1223(Remote):
         unmapped = [g for g in all_genres if g not in seen_genres]
         print("Unmapped:")
         analyze_genres(unmapped)
+        self.flush_stdout()
 
     def prefetch(self):
         """Prefetch audio speech segments for reduced waiting times (roughly 30

@@ -103,6 +103,9 @@ class Remote:
         time.sleep(seconds)
         tcflush(sys.stdin, TCIOFLUSH)
 
+    def flush_stdout(self):
+        tcflush(sys.stdout, TCIOFLUSH)
+
     def mute_context(self) -> MuteContext:
         return MuteContext(self._client)
 
