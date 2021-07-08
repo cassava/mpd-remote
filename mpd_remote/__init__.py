@@ -74,6 +74,7 @@ class Remote:
 
     def listen_stdin(self) -> None:
         """Listen in the main loop and dispatch events."""
+        self.flush_stdin(0)
         while True:
             char = self.prompt_stdin()
             if char in self.EXIT_KEYS:
