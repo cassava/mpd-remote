@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 .PHONY: install enable start restart uninstall
 install:
 	if [[ -z "$$(command -v play)" ]]; then \
