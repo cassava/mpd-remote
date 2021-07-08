@@ -104,7 +104,8 @@ class Remote:
         tcflush(sys.stdin, TCIOFLUSH)
 
     def flush_stdout(self):
-        tcflush(sys.stdout, TCIOFLUSH)
+        sys.stderr.flush()
+        sys.stdout.flush()
 
     def mute_context(self) -> MuteContext:
         return MuteContext(self._client)
