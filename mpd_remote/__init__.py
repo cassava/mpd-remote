@@ -70,7 +70,7 @@ class Remote:
         self._client = mpd_client
         self._actions: Dict[str, Callable[None, []]] = dict()
         self._input_char = None
-        self._flush_seconds = 0.1
+        self._flush_seconds = 0.250
 
     def listen_stdin(self) -> None:
         """Listen in the main loop and dispatch events."""
