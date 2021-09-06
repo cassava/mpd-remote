@@ -270,7 +270,7 @@ class DenonRC1223(Remote):
 
         def power_shutdown(ctx):
             ctx.say("Shutting down system.")
-            subprocess.run(["shutdown"])
+            subprocess.run(["poweroff"])
 
         with self.mute_context() as ctx:
             self.navigate_menu(
