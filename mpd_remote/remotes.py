@@ -10,12 +10,13 @@ import yaml
 from . import Remote, MuteContext, vanity
 from .backend import Client
 from .library import Album
-from .speech import Speech, conjoin
+from .speech import Speech, Beep, conjoin
 
 
 class DenonRC1223(Remote):
     def __init__(self, client: Client):
         super().__init__(client)
+        self._beep = Beep(hz=300, duration=0.2)
         self._repeat_char = "+"
         self._flush_seconds = 0.25
         self._seek_seconds = 30
@@ -92,6 +93,10 @@ class DenonRC1223(Remote):
             #
             # System controls:
             "~": self.power,
+            #
+            # Amp controls:
+            "+": self.volume,
+            "-": self.volume,
             #
             # Playback controls:
             " ": self.toggle_playback,
@@ -282,6 +287,11 @@ class DenonRC1223(Remote):
                 ],
                 title="Power menu.",
             )
+
+    def volume(self):
+        """Beep during volume changes."""
+        if not self._client.is_playing():
+            self._beep.play()
 
     def toggle_playback(self):
         """Toggle playback."""

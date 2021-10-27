@@ -92,6 +92,11 @@ class Client:
         return status, [Track(x) for x in playlist]
 
     @with_api
+    def is_playing(self, api) -> bool:
+        status = api.status()
+        return status["state"] == "play"
+
+    @with_api
     def play_random(self, api, genres: List[str] = None):
         album = self.library.random_album(genres)
         api.clear()

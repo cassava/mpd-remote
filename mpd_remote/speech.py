@@ -89,6 +89,33 @@ class Speech:
                 raise RuntimeError(f"error running play:\n{stdout.decode()}")
 
 
+class Beep:
+    def __init__(self, hz: int = 300, duration: float = 0.2):
+        self.hz = hz
+        self.duration = duration
+
+    def play(self) -> None:
+        logging.info(f"Beeping: {self.hz} Hz for {self.duration} s.")
+        with subprocess.Popen(
+            [
+                "play",
+                "-q",
+                "-n",
+                "-c1",
+                "synth",
+                str(self.duration),
+                "sine",
+                str(self.hz),
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            close_fds=True,
+        ) as proc:
+            stdout, _ = proc.communicate()
+            if proc.returncode != 0:
+                raise RuntimeError(f"error running play:\n{stdout.decode()}")
+
+
 def conjoin(conjunction: str, xs: List[str]) -> str:
     assert len(xs) != 0
     n = len(xs)
