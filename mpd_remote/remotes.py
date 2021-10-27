@@ -95,7 +95,7 @@ class DenonRC1223(Remote):
             "~": self.power,
             #
             # Amp controls:
-            "+": self.volume,
+            "=": self.volume,
             "-": self.volume,
             #
             # Playback controls:
