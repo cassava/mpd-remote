@@ -1,5 +1,15 @@
 SHELL := /bin/bash
 
+export PIPX_HOME := /usr/local/lib/pipx
+export PIPX_BIN_DIR := /usr/local/bin
+
+.PHONY: debian-deps
+debian-deps:
+	apt install \
+		sox \
+		screen \
+		pipx
+
 .PHONY: install enable start restart uninstall
 install:
 	if [[ -z "$$(command -v play)" ]]; then \
@@ -9,7 +19,7 @@ install:
 		echo "Error: required executable missing: screen"; \
 		false; \
 	fi
-	pip install .
+	pipx install .
 	install -m644 mpd-remote.service /etc/systemd/system/
 	systemctl daemon-reload
 
@@ -23,7 +33,7 @@ restart:
 	systemctl restart mpd-remote.service
 
 uninstall:
-	pip remove mpd-remote
+	pipx remove mpd-remote
 	systemctl disable mpd-remote.service
 	rm /etc/systemd/system/mpd-remote.service
 	systemctl daemon-reload
