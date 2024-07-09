@@ -6,6 +6,7 @@ export PIPX_BIN_DIR := /usr/local/bin
 .PHONY: debian-deps
 debian-deps:
 	apt install \
+		libsox-fmt-all \
 		sox \
 		screen \
 		pipx
