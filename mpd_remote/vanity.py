@@ -49,6 +49,7 @@ def to_regex_linear(numbers: str, strict: bool = False) -> re.Pattern:
     regex = ""
     prev = None
     has_slash = False
+    trailing_star = False
     for char in numbers:
         if char not in REGEX_MAP:
             continue
@@ -56,14 +57,23 @@ def to_regex_linear(numbers: str, strict: bool = False) -> re.Pattern:
             has_slash = True
         if char == "0" and prev == "0":
             # Double 0 translates to .*
-            regex += "*"
+            if not trailing_star:
+                # But .** is a bad regex pattern, so guard against it.
+                regex += "*"
+                trailing_star = True
         else:
             regex += REGEX_MAP[char]
+            trailing_star = False
         prev = char
 
     # If no slash has been specified, assume we're searching for artist.
     if not has_slash:
-        regex += ".*/"
+        if trailing_star:
+            regex += "/"
+        elif regex[-1] == ".":
+            regex += "*/"
+        else:
+            regex += ".*/"
 
     # If a slash is at the beginning, then we don't need ^ in strict mode.
     if strict and regex[0] != "/":
