@@ -1,15 +1,24 @@
 [Unit]
 Description=Launch mpd-remote service on TTY1
-After=getty.target
+After=mpd.service network-online.target sound.target getty@tty1.service
+Wants=mpd.service network-online.target
 Conflicts=getty@tty1.service
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/screen -S mpd-remote /bin/bash -c "/usr/local/bin/mpd-remote listen 2>&1 | tee /tmp/mpd-remote.log"
+Environment=PYTHONUNBUFFERED=1
+Environment=TERM=linux
+ExecStart=/usr/bin/screen -S mpd-remote /bin/bash -c "/usr/local/bin/mpd-remote -v listen 2>&1 | tee >(systemd-cat -t mpd-remote)"
 Restart=always
+RestartSec=3
 StandardInput=tty-force
 StandardOutput=inherit
 StandardError=inherit
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
 
 [Install]
 WantedBy=multi-user.target
