@@ -1,0 +1,60 @@
+flush_seconds: 0.350
+genres:
+  "1":
+    - Classical
+  "2":
+    - Acoustic
+    - Gospel
+    - R&B
+    - Soft Rock
+    - Soul
+  "3":
+    - Blues
+    - Celtic
+    - Folk
+    - Folk Pop
+    - Indie
+    - Indie Folk
+    - Indie Pop
+    - Indie Rock
+    - Worldbeat
+  "4":
+    - Hip-Hop
+    - Rap
+    - Reggae
+  "5":
+    - Instrumental
+    - Jazz
+    - Jazz Pop
+  "6":
+    - Alternative Metal
+    - Baroque
+    - Grunge
+    - Hard Rock
+    - Metal
+    - Nu Metal
+    - Pop Punk
+    - Punk Rock
+    - Ska
+  "7":
+    - Alternative Rock
+    - Blues Rock
+    - Classic Rock
+    - Country
+    - Country Rock
+    - Folk Rock
+    - Indie Rock
+    - Latin
+    - Pop Rock
+    - Post Grunge
+    - Progressive Rock
+  "8":
+    - Dance
+    - Disco
+    - Electronic
+    - House
+    - Remix
+  "9":
+  "0":
+    - Funk
+    - Pop
