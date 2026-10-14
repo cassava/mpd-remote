@@ -3,10 +3,12 @@ import time
 import sys
 import logging
 import traceback
+import termios
+import tty
+import os
 
 from pathlib import Path
 from typing import List, Dict, Union, Callable, Optional, Tuple
-from termios import tcflush, TCIOFLUSH
 from contextlib import contextmanager
 
 from readchar import key
@@ -127,7 +129,7 @@ class Remote:
     def flush_stdin(self, seconds: float):
         self._input_char = None
         time.sleep(seconds)
-        tcflush(sys.stdin.fileno(), termios.TCIFLUSH)
+        termios.tcflush(sys.stdin.fileno(), termios.TCIFLUSH)
 
     def flush_stdout(self):
         sys.stderr.flush()
