@@ -14,7 +14,7 @@ from .organize import EditableDatabase
 @click.group()
 @click.pass_context
 @click.version_option(
-    version="0.3",
+    version="0.4",
     help="Show program version.",
 )
 @click.option(
