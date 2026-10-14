@@ -40,19 +40,19 @@ class Track:
 
     @property
     def artist(self) -> Union[str, List[str]]:
-        return self.data["artist"]
+        return self.data.get("artist", "")
 
     @property
     def albumartist(self) -> str:
-        return self.data["albumartist"]
+        return self.data.get("albumartist", "")
 
     @property
     def album(self) -> str:
-        return self.data["album"]
+        return self.data.get("album", "")
 
     @property
     def date(self) -> str:
-        return self.data["date"]
+        return self.data.get("date", "")
 
     @property
     def duration(self) -> float:
@@ -202,7 +202,7 @@ class Library:
 
     def recent_albums(self, limit: int = 100) -> List[Album]:
         albums = list(self.albums.values())
-        albums.sort(key=lambda x: x.newest_modified)
+        albums.sort(key=lambda x: x.newest_modified, reverse=True)
         return albums[:limit]
 
     def search_vanity(self, numbers: str, mode: str = "linear"):
