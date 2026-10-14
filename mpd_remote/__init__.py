@@ -9,7 +9,7 @@ from typing import List, Dict, Union, Callable, Optional, Tuple
 from termios import tcflush, TCIOFLUSH
 from contextlib import contextmanager
 
-from readchar import readkey, key
+from readchar import key
 
 from .library import Track, Album
 from .backend import Client
@@ -75,34 +75,59 @@ class Remote:
     def listen_stdin(self) -> None:
         """Listen in the main loop and dispatch events."""
         self.flush_stdin(0)
-        while True:
-            char = self.prompt_stdin()
-            if char in self.EXIT_KEYS:
-                logging.info("Goodbye.")
-                break
-            elif char in self._actions:
-                try:
-                    self._actions[char]()
-                except:
-                    traceback.print_exc()
-                    with self.mute_context() as ctx:
-                        ctx.say("Sorry, an error occurred.")
-            else:
-                self._unbound(char)
+        with self.raw_input_mode():
+            while True:
+                char = self.prompt_stdin()
+                if char in self.EXIT_KEYS:
+                    logging.info("Goodbye.")
+                    break
+                elif char in self._actions:
+                    try:
+                        self._actions[char]()
+                    except:
+                        traceback.print_exc()
+                        with self.mute_context() as ctx:
+                            ctx.say("Sorry, an error occurred.")
+                else:
+                    self._unbound(char)
 
-            # Flush stdin to ignore double presses
-            self.flush_stdin(self._flush_seconds)
+                # Flush stdin to ignore double presses
+                self.flush_stdin(self._flush_seconds)
+
+    @contextmanager
+    def raw_input_mode(self):
+        """Unbuffered, no-echo key input for the whole session."""
+        fd = sys.stdin.fileno()
+        saved = termios.tcgetattr(fd)
+        try:
+            tty.setcbreak(fd)
+            attrs = termios.tcgetattr(fd)
+            attrs[3] &= ~termios.ISIG  # Ctrl-C arrives as a key, handled via EXIT_KEYS
+            termios.tcsetattr(fd, termios.TCSADRAIN, attrs)
+            yield
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, saved)
+
+    def _read_key(self) -> str:
+        fd = sys.stdin.fileno()
+        data = os.read(fd, 1)
+        if not data:
+            return key.CTRL_D  # EOF
+        if data == b"\x1b":  # escape sequence, e.g. arrow keys
+            while select.select([fd], [], [], 0.02)[0]:
+                data += os.read(fd, 1)
+        return data.decode("utf-8", errors="replace")
 
     def prompt_stdin(self, timeout: float = 0) -> str:
-        logging.info(f"Listening...")
-        self._input_char = readkey()
+        logging.info("Listening...")
+        self._input_char = self._read_key()
         logging.info(f"Event: {repr(self._input_char)}")
         return self._input_char
 
     def flush_stdin(self, seconds: float):
         self._input_char = None
         time.sleep(seconds)
-        tcflush(sys.stdin, TCIOFLUSH)
+        tcflush(sys.stdin.fileno(), termios.TCIFLUSH)
 
     def flush_stdout(self):
         sys.stderr.flush()
