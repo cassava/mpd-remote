@@ -43,32 +43,39 @@ class Speech:
         if self.audio is not None:
             return self
 
-        # Fetch and (maybe) cache speech audio.
         if self.file.exists():
             logging.debug(f"Using cache: {self.file}")
-            with self.file.open("rb") as file:
-                self.audio = io.BytesIO(file.read())
-        else:
-            logging.debug(f"Fetching audio for: {self.text}")
-            self.audio = io.BytesIO()
-            self.gtts.write_to_fp(self.audio)
-            if cache:
-                if not self.cache_dir.exists():
-                    logging.debug(f"Making directory: {self.cache_dir}")
-                    self.cache_dir.mkdir(parents=True)
-                with self.file.open("wb") as file:
-                    logging.debug(f"Caching audio: {self.file}")
-                    self.gtts.write_to_fp(file)
+            self.audio = io.BytesIO(self.file.read_bytes())
+            return self
 
+        logging.debug(f"Fetching audio for: {self.text}")
+        buf = io.BytesIO()
+        self.gtts.write_to_fp(buf)  # raises on failure, before anything touches disk
+        self.audio = buf
+
+        if cache:
+            self._write_cache()
         return self
 
+    def _write_cache(self) -> None:
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        tmp = self.file.with_suffix(".tmp")
+        tmp.write_bytes(self.audio.getvalue())
+        tmp.replace(self.file)  # atomic rename
+        logging.debug(f"Cached audio: {self.file}")
+
     def play_async(self) -> subprocess.Popen:
+        self.prefetch(cache=True)
+        if not self.file.exists():
+            self._write_cache()
+
         self.prefetch(cache=True)
         logging.info(f"Speaking: {self.text}")
         proc = subprocess.Popen(
             ["play", "-q", str(self.file), "delay", "0.1"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            stdin=subprocess.DEVNULL,
         )
         logging.info(f"Process: {proc.pid}")
         return proc
