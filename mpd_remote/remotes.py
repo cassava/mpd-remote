@@ -18,7 +18,7 @@ class DenonRC1223(Remote):
         super().__init__(client)
         self._beep = Beep(hz=300, duration=0.2)
         self._repeat_char = "+"
-        self._flush_seconds = 0.25
+        self._flush_seconds = 0.35
         self._seek_seconds = 30
         self._genres = {
             "1": [
